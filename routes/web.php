@@ -12,9 +12,10 @@ use App\Http\Controllers\{
     HelpQuestionController,
     RankingController,
     StaffController,
-    UserSettingController
+    UserSettingController,
+    Auth\AuthSessionController,
+    UserProfileController
 };
-use App\Http\Controllers\Auth\AuthSessionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -70,7 +71,6 @@ Route::prefix('articles')
 Route::prefix('community')
     ->name('community.')
     ->group(function () {
-        // Photos Routes
         Route::prefix('photos')
             ->name('photos.')
             ->group(function () {
@@ -82,20 +82,28 @@ Route::prefix('community')
 
         Route::get('staff', [StaffController::class, 'index'])->name('staffs.index');
         Route::get('rankings', RankingController::class)
-            ->middleware('auth')
             ->name('rankings.index');
     });
 
-Route::prefix('user')
-    ->name('users.')
+Route::name('users.')
     ->middleware('auth')
     ->group(function () {
 
-        // User Settings
-        Route::prefix('settings')
-            ->name('settings.')
+        Route::prefix('profile')
+            ->name('profile.')
             ->group(function () {
-                Route::match(['GET', 'POST'], '/{page?}', [UserSettingController::class, 'index'])->name('index');
+                Route::get('{username}', [UserProfileController::class, 'show'])->name('show')->withoutMiddleware('auth');
+                Route::post('{username}/buy-item', [UserProfileController::class, 'buyItem'])->name('buy-item');
+                Route::post('{username}/save', [UserProfileController::class, 'save'])->name('save');
+            });
+
+        Route::prefix('user')
+            ->group(function() {
+                Route::prefix('settings')
+                    ->name('settings.')
+                    ->group(function () {
+                        Route::match(['GET', 'POST'], '/{page?}', [UserSettingController::class, 'index'])->name('index');
+                    });
             });
     });
 
